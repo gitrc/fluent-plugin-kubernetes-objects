@@ -12,7 +12,7 @@ ENV FLUENT_SPLUNK_HEC_GEM_VERSION=${FLUENT_SPLUNK_HEC_GEM_VERSION}
 # skip runtime bundler installation
 ENV FLUENTD_DISABLE_BUNDLER_INJECTION 1
 
-COPY *.gem /tmp/
+#COPY *.gem /tmp/
 
 RUN set -e \
  && apt-get update \
@@ -25,10 +25,12 @@ RUN set -e \
  && gem install -N fluent-plugin-jq -v "0.5.1" \
  && gem install -N oj -v "3.7.9" \
  && gem install -N fluent-plugin-splunk-hec:${FLUENT_SPLUNK_HEC_GEM_VERSION} \
- && gem install -N /tmp/*.gem \
+ && gem install -N fluent-plugin-kubernetes-objects:${VERSION} \
+# && gem install -N /tmp/*.gem \
  && dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
- && wget -O /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.1/dumb-init_1.2.1_$dpkgArch \
- && chmod +x /usr/bin/dumb-init \
+# && wget -O /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.1/dumb-init_1.2.1_$dpkgArch \
+# && chmod +x /usr/bin/dumb-init \
+ && apt-get install dumb-init \
  && apt-get purge -y --auto-remove \
                   -o APT::AutoRemove::RecommendsImportant=false \
                   $buildDeps \
@@ -37,7 +39,7 @@ RUN set -e \
  && mkdir -p /fluentd/etc
 
  # See https://packages.debian.org/stretch/amd64/libjemalloc1/filelist
-ENV LD_PRELOAD "/usr/lib/x86_64-linux-gnu/libjemalloc.so.1"
+#ENV LD_PRELOAD "/usr/lib/x86_64-linux-gnu/libjemalloc.so.1"
 COPY entrypoint.sh /fluentd/entrypoint.sh
 
 ENTRYPOINT ["/fluentd/entrypoint.sh"]
